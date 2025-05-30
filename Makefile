@@ -7,9 +7,9 @@ RTL_DIRS	 := $(sort $(dir $(RTL_SRCS)))
 # Include both Include and RTL directories for linting
 LINT_INCLUDES := $(foreach dir, $(INCLUDE_DIRS) $(RTL_DIRS), -I$(realpath $(dir))) -I$(PDKPATH) 
 
-TEST_DIR = ./tests
-TEST_SUBDIRS = $(shell cd $(TEST_DIR) && ls -d */ | grep -v "__pycache__" )
-TESTS = $(TEST_SUBDIRS:/=)
+# TEST_DIR = ./tests
+# TEST_SUBDIRS = $(shell cd $(TEST_DIR) && ls -d */ | grep -v "__pycache__" )
+# TESTS = $(TEST_SUBDIRS:/=)
 
 # Main Linter and Simulatior is Verilator
 LINTER := verilator

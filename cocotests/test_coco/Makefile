@@ -33,13 +33,13 @@ SIM ?= icarus
 VERILOG_SOURCES = $(shell make -sC ../.. VERILOG_SOURCES) # List of Source Files
 VERILOG_INCLUDE_DIRS = ../../rtl
 
-COCOTB_TOPLEVEL     := afifo
+COCOTB_TOPLEVEL     := asynch_fifo
 TOPLEVEL := $(COCOTB_TOPLEVEL)		# CocoTB Version 1
-COCOTB_TEST_MODULES := test_template	# CocoTB Version 2
+COCOTB_TEST_MODULES := test_coco	# CocoTB Version 2
 MODULE := $(COCOTB_TEST_MODULES)	# CocoTB Version 1
 
 # Turn on waveforms
-WAVES := 1
+WAVES := 0
 
 # Call CocoTB's makefile
 include $(shell cocotb-config --makefiles)/Makefile.sim
