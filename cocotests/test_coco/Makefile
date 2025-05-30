@@ -39,7 +39,7 @@ COCOTB_TEST_MODULES := test_coco	# CocoTB Version 2
 MODULE := $(COCOTB_TEST_MODULES)	# CocoTB Version 1
 
 # Turn on waveforms
-WAVES := 0
+WAVES := 1
 
 # Call CocoTB's makefile
 include $(shell cocotb-config --makefiles)/Makefile.sim

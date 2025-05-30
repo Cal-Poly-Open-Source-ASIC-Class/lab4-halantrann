@@ -47,7 +47,6 @@ module asynch_fifo #(
     endfunction
 
     /* ---------------------- Write Domain ---------------------- */
-    wire [ADDR_WIDTH:0] rbin_s = gray2bin(rgray_s2);
     assign full = ((wgray[ADDR_WIDTH] != rgray_s2[ADDR_WIDTH]) &&
                    (wgray[ADDR_WIDTH-1:0] == rgray_s2[ADDR_WIDTH-1:0]));
 
@@ -74,16 +73,24 @@ module asynch_fifo #(
     end
 
     /* ---------------------- Read Domain ---------------------- */
-    wire [ADDR_WIDTH:0] wbin_s = gray2bin(wgray_s2);
     assign empty = (rgray == wgray_s2);
 
+    // Separate the read data assignment from pointer advancement
+    always @(posedge r_clk or posedge rst) begin
+        if (rst) begin
+            rdata_reg <= 0;
+        end else begin
+            // Always output the data at the current read pointer
+            rdata_reg <= mem[rbin[ADDR_WIDTH-1:0]];
+        end
+    end
+
+    // Handle read pointer advancement
     always @(posedge r_clk or posedge rst) begin
         if (rst) begin
             rbin <= 0;
             rgray <= 0;
-            rdata_reg <= 0;
         end else if (r_en && !empty) begin
-            rdata_reg <= mem[rbin[ADDR_WIDTH-1:0]];
             rbin <= rbin + 1;
             rgray <= bin2gray(rbin + 1);
         end
