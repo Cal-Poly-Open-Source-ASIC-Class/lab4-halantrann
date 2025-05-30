@@ -6,7 +6,7 @@ from cocotb.triggers import (
 import random
 
 
-############################# RESET VALUES #############################
+# reset 
 async def reset_fifo(dut):
     dut.rst.value = 0
     dut.w_en.value = 0
@@ -18,7 +18,7 @@ async def reset_fifo(dut):
     await RisingEdge(dut.r_clk)
     
 
-############################# WRITE VALUES #############################
+# write 
 async def writer(dut, test_data):
     for val in test_data:
         while dut.full.value:
@@ -30,7 +30,7 @@ async def writer(dut, test_data):
         await Timer(random.randint(5, 20), units="ns")
         
 
-############################# READ VALUES #############################
+# read 
 async def reader(dut, num_items, expected_data):
     read_data = []
     await Timer(100, units="ns")  # Delay to allow writes to get started
@@ -58,12 +58,10 @@ async def reader(dut, num_items, expected_data):
     assert read_data == expected_data, f"Mismatch! Expected {expected_data}, got {read_data}"
 
 
-
-############################# MAIN TEST #############################
+# main 
 @cocotb.test()
 async def asynch_fifo_test(dut):
 
-    # Start clocks
     cocotb.start_soon(Clock(dut.r_clk, 13, units='ns').start())
     cocotb.start_soon(Clock(dut.w_clk, 7, units='ns').start())
 
