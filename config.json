@@ -1,0 +1,13 @@
+{
+ "CLOCK_PORT": ["r_clk", "w_clk"],
+ "PNR_SDC_FILE": "constraints.sdc",
+ "SIGNOFF_SDC_FILE": "constraints.sdc",
+ "DESIGN_NAME": "asynch_fifo",
+ "VERILOG_FILES": "dir::rtl/*.sv",
+ "FP_PDN_VOFFSET": 7.0,
+ "FP_PDN_HOFFSET": 7.0,
+ "FP_PDN_SKIPTRIM": true,
+ "RUN_POST_GRT_RESIZER_TIMING": true, 
+ "RUN_POST_GRT_DESIGN_REPAIR": true,
+ "SYNTH_AUTONAME": true
+}
