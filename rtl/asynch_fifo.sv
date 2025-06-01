@@ -10,10 +10,10 @@ module asynch_fifo #(
     input wire rst,  // Active-high reset
     input wire [WIDTH-1:0] w_data,
 
-    output wire full,
+    output reg full,
     input wire r_en,
     output wire [WIDTH-1:0] r_data,
-    output wire empty
+    output reg empty
 );
 
     localparam ADDR_WIDTH = $clog2(DEPTH);
@@ -25,31 +25,19 @@ module asynch_fifo #(
     reg [ADDR_WIDTH:0] rbin, rgray;
 
     // Synchronized gray pointers
-    reg [ADDR_WIDTH:0] rgray_s1, rgray_s2;
-    reg [ADDR_WIDTH:0] wgray_s1, wgray_s2;
+    reg [ADDR_WIDTH:0] wgray_s1, wgray_s2;  // write gray sync'd to read domain
+    reg [ADDR_WIDTH:0] rgray_s1, rgray_s2;  // read gray sync'd to write domain
 
-    // Output register for r_data
-    reg [WIDTH-1:0] rdata_reg;
-    assign r_data = rdata_reg;
+    // Output data
+    assign r_data = mem[rbin[ADDR_WIDTH-1:0]];
 
     /* ---------------------- Gray Code Conversion ---------------------- */
     function automatic [ADDR_WIDTH:0] bin2gray(input [ADDR_WIDTH:0] bin);
         bin2gray = bin ^ (bin >> 1);
     endfunction
 
-    function automatic [ADDR_WIDTH:0] gray2bin(input [ADDR_WIDTH:0] gray);
-        integer i;
-        begin
-            gray2bin[ADDR_WIDTH] = gray[ADDR_WIDTH];
-            for (i = ADDR_WIDTH - 1; i >= 0; i = i - 1)
-                gray2bin[i] = gray2bin[i+1] ^ gray[i];
-        end
-    endfunction
-
     /* ---------------------- Write Domain ---------------------- */
-    assign full = ((wgray[ADDR_WIDTH] != rgray_s2[ADDR_WIDTH]) &&
-                   (wgray[ADDR_WIDTH-1:0] == rgray_s2[ADDR_WIDTH-1:0]));
-
+    // Write pointer update
     always @(posedge w_clk or posedge rst) begin
         if (rst) begin
             wbin <= 0;
@@ -61,7 +49,7 @@ module asynch_fifo #(
         end
     end
 
-    // Synchronize read pointer into write clock domain
+    // Synchronize read gray pointer to write clock domain
     always @(posedge w_clk or posedge rst) begin
         if (rst) begin
             rgray_s1 <= 0;
@@ -72,20 +60,21 @@ module asynch_fifo #(
         end
     end
 
-    /* ---------------------- Read Domain ---------------------- */
-    assign empty = (rgray == wgray_s2);
-
-    // Separate the read data assignment from pointer advancement
-    always @(posedge r_clk or posedge rst) begin
+    // Full flag generation - FIXED to properly handle DEPTH=16
+    always @(posedge w_clk or posedge rst) begin
         if (rst) begin
-            rdata_reg <= 0;
+            full <= 0;
         end else begin
-            // Always output the data at the current read pointer
-            rdata_reg <= mem[rbin[ADDR_WIDTH-1:0]];
+            // Compare next write pointer with synchronized read pointer
+            // Need to look at the full wrap-around case
+            full <= ((wgray == {~rgray_s2[ADDR_WIDTH:ADDR_WIDTH-1], 
+                               rgray_s2[ADDR_WIDTH-2:0]}) &&
+                    (w_en && !full));
         end
     end
 
-    // Handle read pointer advancement
+    /* ---------------------- Read Domain ---------------------- */
+    // Read pointer update
     always @(posedge r_clk or posedge rst) begin
         if (rst) begin
             rbin <= 0;
@@ -96,7 +85,7 @@ module asynch_fifo #(
         end
     end
 
-    // Synchronize write pointer into read clock domain
+    // Synchronize write gray pointer to read clock domain
     always @(posedge r_clk or posedge rst) begin
         if (rst) begin
             wgray_s1 <= 0;
@@ -104,6 +93,15 @@ module asynch_fifo #(
         end else begin
             wgray_s1 <= wgray;
             wgray_s2 <= wgray_s1;
+        end
+    end
+
+    // Empty flag  
+    always @(posedge r_clk or posedge rst) begin
+        if (rst) begin
+            empty <= 1;
+        end else begin
+            empty <= (rgray == wgray_s2);
         end
     end
 
