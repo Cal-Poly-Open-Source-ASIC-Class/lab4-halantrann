@@ -12,5 +12,6 @@ set read_period     [get_property -object_type clock [get_clocks {r_clk}] period
 set write_period    [get_property -object_type clock [get_clocks {w_clk}] period]
 set min_period      [expr {min(${read_period}, ${write_period})}]
 
-set_max_delay -from [get_pins rgray[*]] -to [get_pins rgray_s2[*]] $min_period 
-set_max_delay -from [get_pins wgray[*]] -to [get_pins wgray_s2[*]] $min_period
+
+set_max_delay -from [get_pins rgray*df*/CLK] -to [get_pins rgray_s2*df*/D] $min_period
+set_max_delay -from [get_pins wgray*df*/CLK] -to [get_pins wgray_s2*df*/D] $min_period

@@ -60,16 +60,16 @@ module asynch_fifo #(
         end
     end
 
-    // Full flag generation - FIXED to properly handle DEPTH=16
+    // Full flag generation - Fixed logic
     always @(posedge w_clk or posedge rst) begin
         if (rst) begin
             full <= 0;
         end else begin
-            // Compare next write pointer with synchronized read pointer
-            // Need to look at the full wrap-around case
-            full <= ((wgray == {~rgray_s2[ADDR_WIDTH:ADDR_WIDTH-1], 
-                               rgray_s2[ADDR_WIDTH-2:0]}) &&
-                    (w_en && !full));
+            // Check if FIFO will be full after next write
+            // The FIFO is full when the next write pointer (after increment) 
+            // would equal the read pointer with MSB inverted
+            full <= (bin2gray(wbin + 1) == {~rgray_s2[ADDR_WIDTH:ADDR_WIDTH-1], 
+                                          rgray_s2[ADDR_WIDTH-2:0]});
         end
     end
 
